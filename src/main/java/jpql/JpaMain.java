@@ -13,10 +13,13 @@ public class JpaMain {
         tx.begin();
 
         try {
-            Member member = new Member();
-            member.setUserName("member1");
-            member.setAge(10);
-            em.persist(member);
+            for(int i=0;i<100;i++){
+                Member member = new Member();
+                member.setUserName("member"+i);
+                member.setAge(i);
+                em.persist(member);
+            }
+
 
             em.flush();
             em.clear();
@@ -43,12 +46,22 @@ public class JpaMain {
 //            System.out.println("result[0] = " + result[0]);
 //            System.out.println("result[0] = " + result[1]);
 
-            List<MemberDTO> result = em.createQuery("select new jpql.MemberDTO(m.userName,m.age) from Member m", MemberDTO.class)
+//            List<MemberDTO> result = em.createQuery("select new jpql.MemberDTO(m.userName,m.age) from Member m", MemberDTO.class)
+//                    .getResultList();
+//
+//            MemberDTO memberDTO = result.get(0);
+//            System.out.println("memberDTO = " + memberDTO.getUsername());
+//            System.out.println("memberDTO = " + memberDTO.getAge());
+//            페이징
+            List<Member> result = em.createQuery("select m from Member m order by m.age desc", Member.class)
+                    .setFirstResult(1)
+                    .setMaxResults(10)
                     .getResultList();
+            System.out.println("result = " + result.size());
+            for (Member member1 : result) {
+                System.out.println("member1 = " + member1);
+            }
 
-            MemberDTO memberDTO = result.get(0);
-            System.out.println("memberDTO = " + memberDTO.getUsername());
-            System.out.println("memberDTO = " + memberDTO.getAge());
 
             tx.commit();
         } catch (Exception e) {
