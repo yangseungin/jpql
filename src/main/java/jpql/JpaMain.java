@@ -20,6 +20,7 @@ public class JpaMain {
             Member member = new Member();
             member.setUserName("member1");
             member.setAge(10);
+            member.setType(MemberType.ADMIN);
             member.setTeam(team);
 
              em.persist(member);
@@ -66,10 +67,22 @@ public class JpaMain {
 //            for (Member member1 : result) {
 //                System.out.println("member1 = " + member1);
 //            }
-            String query = "select m from Member m left join m.team t on t.name='teamA'";
-            List<Member> result = em.createQuery(query, Member.class)
-                    .getResultList();
+//            //조인
+//            String query = "select m from Member m left join m.team t on t.name='teamA'";
+//            List<Member> result = em.createQuery(query, Member.class)
+//                    .getResultList();
 
+//            타입표현과 기타식
+            String query = "select m.userName, 'HELLO', true from Member m " +
+                    "where m.type = :userType" ;
+            List<Object[]> result = em.createQuery(query)
+                    .setParameter("userType",MemberType.ADMIN)
+                    .getResultList();
+            for (Object[] objects : result) {
+                System.out.println("objects = " + objects[0]);
+                System.out.println("objects = " + objects[1]);
+                System.out.println("objects = " + objects[2]);
+            }
 
             tx.commit();
         } catch (Exception e) {
