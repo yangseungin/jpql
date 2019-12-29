@@ -18,12 +18,12 @@ public class JpaMain {
             em.persist(team);
 
             Member member = new Member();
-            member.setUserName("member1");
+            member.setUserName("관리자");
             member.setAge(10);
             member.setType(MemberType.ADMIN);
             member.setTeam(team);
 
-             em.persist(member);
+            em.persist(member);
 
 
             em.flush();
@@ -73,16 +73,32 @@ public class JpaMain {
 //                    .getResultList();
 
 //            타입표현과 기타식
-            String query = "select m.userName, 'HELLO', true from Member m " +
-                    "where m.type = :userType" ;
-            List<Object[]> result = em.createQuery(query)
-                    .setParameter("userType",MemberType.ADMIN)
+//            String query = "select m.userName, 'HELLO', true from Member m " +
+//                    "where m.type = :userType" ;
+//            List<Object[]> result = em.createQuery(query)
+//                    .setParameter("userType",MemberType.ADMIN)
+//                    .getResultList();
+
+//            조건식
+//            String query = "select " +
+//                    "case when m.age<=10 then '학생요금' " +
+//                    "     when m.age>=60 then '경로요금' " +
+//                    "     else '일반요금' " +
+//                    "end " +
+//                    "from Member m";
+//            String query2 = "select nullif(m.userName, '관리자') from Member m ";
+//            List<String> result = em.createQuery(query2, String.class)
+//                    .getResultList();
+
+//            jpql 함수 - concat, substring, trim, lower, upper, length, locate, abs, sqrt, mod, size, index
+            String query = "select size(t.members) from Team t ";
+            String query2 = "select function('group_concat',m.userName) from Member m "; // persistence.xml에 ibernate.dialect에 my dialect 등록해야
+            List<Integer> result = em.createQuery(query, Integer.class)
                     .getResultList();
-            for (Object[] objects : result) {
-                System.out.println("objects = " + objects[0]);
-                System.out.println("objects = " + objects[1]);
-                System.out.println("objects = " + objects[2]);
+            for (Integer integer : result) {
+                System.out.println("integer = " + integer);
             }
+
 
             tx.commit();
         } catch (Exception e) {
