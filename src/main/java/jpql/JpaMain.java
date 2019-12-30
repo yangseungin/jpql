@@ -1,6 +1,7 @@
 package jpql;
 
 import javax.persistence.*;
+import java.util.Collection;
 import java.util.List;
 
 public class JpaMain {
@@ -13,92 +14,77 @@ public class JpaMain {
         tx.begin();
 
         try {
-            Team team = new Team();
-            team.setName("teamA");
-            em.persist(team);
+            Team teamA = new Team();
+            teamA.setName("팀A");
+            em.persist(teamA);
 
-            Member member = new Member();
-            member.setUserName("관리자");
-            member.setAge(10);
-            member.setType(MemberType.ADMIN);
-            member.setTeam(team);
+            Team teamB = new Team();
+            teamB.setName("팀B");
+            em.persist(teamB);
 
-            em.persist(member);
+            Member member1 = new Member();
+            member1.setUserName("회원1");
+            member1.setTeam(teamA);
+            em.persist(member1);
 
+            Member member2 = new Member();
+            member2.setUserName("회원2");
+            member2.setTeam(teamA);
+            em.persist(member2);
 
-            em.flush();
-            em.clear();
-
-//            List<Member> result = em.createQuery("select m from Member m", Member.class)
-//                    .getResultList();
-//
-//            Member findMember = result.get(0);
-//            findMember.setAge(20);
-
-//            List<Team> result = em.createQuery("select m.team from Member m", Team.class)
-//                    .getResultList();
-            //select t from Member m join m.team t 명시적으로 표시해주는게 좋음
-
-            //임베디드 타입은 엔티티로부터 시작해야함
-//             em.createQuery("select o.address from Order o", Address.class)
-//                    .getResultList();
+            Member member3 = new Member();
+            member3.setUserName("회원3");
+            member3.setTeam(teamB);
+            em.persist(member3);
 
 
-//            List resultList = em.createQuery("select distinct m.userName,m.age from Member m")
-//                    .getResultList();
-//            Object o = resultList.get(0);
-//            Object[] result = (Object[]) o;
-//            System.out.println("result[0] = " + result[0]);
-//            System.out.println("result[0] = " + result[1]);
+//            em.flush();
+//            em.clear();
 
-//            List<MemberDTO> result = em.createQuery("select new jpql.MemberDTO(m.userName,m.age) from Member m", MemberDTO.class)
-//                    .getResultList();
-//
-//            MemberDTO memberDTO = result.get(0);
-//            System.out.println("memberDTO = " + memberDTO.getUsername());
-//            System.out.println("memberDTO = " + memberDTO.getAge());
+//            경로표현식
+//            String query1 = "select t.members From Team t"; //묵시적 조인 - 사용하지말것을 권장
+//            String query = "select m.userName From Team t join t.members m"; // 명시적 조
+//            List<Collection> result = em.createQuery(query, Collection.class).getResultList();
 
-//            페이징
-//            List<Member> result = em.createQuery("select m from Member m order by m.age desc", Member.class)
-//                    .setFirstResult(1)
-//                    .setMaxResults(10)
-//                    .getResultList();
-//            System.out.println("result = " + result.size());
-//            for (Member member1 : result) {
-//                System.out.println("member1 = " + member1);
+//            패치조인 ManyToOne
+//            String query = "select m From Member m join fetch m.team";
+//            List<Member> result = em.createQuery(query, Member.class).getResultList();
+//            for (Member member : result) {
+//                System.out.println("member = " + member.getUserName()+ ", "+member.getTeam().getName());
+//                //회원 1, 팀A(SQL)
+//                //회원 2, 팀A(1차캐시)
+//                //회원 3, 팀B(SQL)
+//                //회원 100명-> N + 1 (1= 회원을 가져오기위해 가져온 쿼리 만큼N번을 날린다 해서 N+1문제)
 //            }
-//            //조인
-//            String query = "select m from Member m left join m.team t on t.name='teamA'";
-//            List<Member> result = em.createQuery(query, Member.class)
+
+//            컬렉션 페치조인
+//            String query = "select distinct t From Team t join fetch t.members";
+//            List<Team> result = em.createQuery(query, Team.class).getResultList();
+//            for (Team team : result) {
+//                System.out.println("team = " + team.getName()+" | "+team.getMembers().size());
+//                for( Member member:team.getMembers()){
+//                    System.out.println("-> member = " + member);
+//                }
+//            }
+            //SPQL의 DISTINCT는 sql에 DISTINCT를 추가하는 역활과 애플리케이션에서 엔티티 중복을 제거한
+            //모든것을 페치 조인으로 해결할 수는 없음
+            // 객체그래프를 유지할떄 효과적
+            // 여러테이블을 조인해서 전혀다른 결과를 내야하면 필요데이터만 조회해서 DTO로 반환하는것이 효과
+
+            //named 쿼리
+            //xml 으로 뺴서 엔티티에 작성하지않고 뺼수 있음
+//            List<Member> result = em.createNamedQuery("Member.findByUserName", Member.class)
+//                    .setParameter("userName", "회원1")
 //                    .getResultList();
 
-//            타입표현과 기타식
-//            String query = "select m.userName, 'HELLO', true from Member m " +
-//                    "where m.type = :userType" ;
-//            List<Object[]> result = em.createQuery(query)
-//                    .setParameter("userType",MemberType.ADMIN)
-//                    .getResultList();
-
-//            조건식
-//            String query = "select " +
-//                    "case when m.age<=10 then '학생요금' " +
-//                    "     when m.age>=60 then '경로요금' " +
-//                    "     else '일반요금' " +
-//                    "end " +
-//                    "from Member m";
-//            String query2 = "select nullif(m.userName, '관리자') from Member m ";
-//            List<String> result = em.createQuery(query2, String.class)
-//                    .getResultList();
-
-//            jpql 함수 - concat, substring, trim, lower, upper, length, locate, abs, sqrt, mod, size, index
-            String query = "select size(t.members) from Team t ";
-            String query2 = "select function('group_concat',m.userName) from Member m "; // persistence.xml에 ibernate.dialect에 my dialect 등록해야
-            List<Integer> result = em.createQuery(query, Integer.class)
-                    .getResultList();
-            for (Integer integer : result) {
-                System.out.println("integer = " + integer);
-            }
-
+            //벌크연산 - 영속성컨텍스트를 무시하기 때문에 연산 수행 후 영속성 컨텍스트 초기화
+            //flush 만 동작 clear을 해서 영속성컨텍스트를 초기화해줘야 db와 값이 같아
+            int resultCount = em.createQuery("update Member m set m.age=20")
+                    .executeUpdate();
+            System.out.println("resultCount = " + resultCount);
+            System.out.println("member1.getAge() = " + member1.getAge());
+            System.out.println("member1.getAge() = " + member2.getAge());
+            System.out.println("member1.getAge() = " + member3.getAge());
 
             tx.commit();
         } catch (Exception e) {
