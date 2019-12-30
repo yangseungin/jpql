@@ -38,8 +38,8 @@ public class JpaMain {
             em.persist(member3);
 
 
-            em.flush();
-            em.clear();
+//            em.flush();
+//            em.clear();
 
 //            경로표현식
 //            String query1 = "select t.members From Team t"; //묵시적 조인 - 사용하지말것을 권장
@@ -58,19 +58,33 @@ public class JpaMain {
 //            }
 
 //            컬렉션 페치조인
-            String query = "select distinct t From Team t join fetch t.members";
-            List<Team> result = em.createQuery(query, Team.class).getResultList();
-            for (Team team : result) {
-                System.out.println("team = " + team.getName()+" | "+team.getMembers().size());
-                for( Member member:team.getMembers()){
-                    System.out.println("-> member = " + member);
-                }
-            }
+//            String query = "select distinct t From Team t join fetch t.members";
+//            List<Team> result = em.createQuery(query, Team.class).getResultList();
+//            for (Team team : result) {
+//                System.out.println("team = " + team.getName()+" | "+team.getMembers().size());
+//                for( Member member:team.getMembers()){
+//                    System.out.println("-> member = " + member);
+//                }
+//            }
             //SPQL의 DISTINCT는 sql에 DISTINCT를 추가하는 역활과 애플리케이션에서 엔티티 중복을 제거한
             //모든것을 페치 조인으로 해결할 수는 없음
             // 객체그래프를 유지할떄 효과적
             // 여러테이블을 조인해서 전혀다른 결과를 내야하면 필요데이터만 조회해서 DTO로 반환하는것이 효과
 
+            //named 쿼리
+            //xml 으로 뺴서 엔티티에 작성하지않고 뺼수 있음
+//            List<Member> result = em.createNamedQuery("Member.findByUserName", Member.class)
+//                    .setParameter("userName", "회원1")
+//                    .getResultList();
+
+            //벌크연산 - 영속성컨텍스트를 무시하기 때문에 연산 수행 후 영속성 컨텍스트 초기화
+            //flush 만 동작 clear을 해서 영속성컨텍스트를 초기화해줘야 db와 값이 같아
+            int resultCount = em.createQuery("update Member m set m.age=20")
+                    .executeUpdate();
+            System.out.println("resultCount = " + resultCount);
+            System.out.println("member1.getAge() = " + member1.getAge());
+            System.out.println("member1.getAge() = " + member2.getAge());
+            System.out.println("member1.getAge() = " + member3.getAge());
 
             tx.commit();
         } catch (Exception e) {
